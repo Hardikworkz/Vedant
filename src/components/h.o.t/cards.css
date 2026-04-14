@@ -87,6 +87,7 @@
     clamp(16px, 4vw, 30px);
   scroll-padding-inline: max(var(--edge-pad), calc((100% - var(--card-size)) / 2));
   scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
   cursor: grab;
@@ -94,6 +95,7 @@
   -webkit-user-drag: none;
   touch-action: pan-y pinch-zoom;
   overscroll-behavior-inline: contain;
+  will-change: scroll-position;
 }
 
 .slider-viewport::-webkit-scrollbar {
@@ -168,7 +170,7 @@
     transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
     opacity 0.4s ease,
     filter 0.4s ease;
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
   border-radius: clamp(14px, 2vw, 20px);
   border: 1px solid rgba(190, 6, 18, 0.4);
   box-shadow: 0 0 15px rgba(190, 6, 18, 0.15);

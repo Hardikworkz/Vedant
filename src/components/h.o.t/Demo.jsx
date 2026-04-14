@@ -14,6 +14,10 @@ const Demo = () => {
   const cardRefs = useRef([]);
   const frameRef = useRef(null);
   const wheelTimeoutRef = useRef(null);
+  const wheelFrameRef = useRef(null);
+  const scrollTargetRef = useRef(0);
+  const scrollEaseRef = useRef(0.16);
+  const isDraggingRef = useRef(false);
   const activeIndexRef = useRef(INITIAL_INDEX);
   const suppressClickRef = useRef(false);
   const dragStateRef = useRef({
@@ -28,9 +32,79 @@ const Demo = () => {
   const totalItems = rooms.length;
   const loopedRooms = [...rooms, ...rooms, ...rooms];
 
+  const clampScrollLeft = useCallback((value) => {
+    const slider = scrollRef.current;
+    if (!slider) return value;
+
+    const maxScroll = Math.max(0, slider.scrollWidth - slider.clientWidth);
+    return Math.min(maxScroll, Math.max(0, value));
+  }, []);
+
+  const stopWheelAnimation = useCallback(() => {
+    if (wheelFrameRef.current) {
+      cancelAnimationFrame(wheelFrameRef.current);
+      wheelFrameRef.current = null;
+    }
+  }, []);
+
+  const queueSnapRestore = useCallback((delay = 160) => {
+    if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+
+    wheelTimeoutRef.current = setTimeout(() => {
+      const slider = scrollRef.current;
+      if (!slider || isDraggingRef.current) return;
+
+      slider.style.scrollSnapType = "x mandatory";
+      slider.style.scrollBehavior = "smooth";
+    }, delay);
+  }, []);
+
+  const stepWheelScroll = useCallback(() => {
+    const slider = scrollRef.current;
+    if (!slider) {
+      wheelFrameRef.current = null;
+      return;
+    }
+
+    const diff = scrollTargetRef.current - slider.scrollLeft;
+    if (Math.abs(diff) < 0.6) {
+      slider.scrollLeft = scrollTargetRef.current;
+      wheelFrameRef.current = null;
+      queueSnapRestore();
+      return;
+    }
+
+    slider.scrollLeft += diff * scrollEaseRef.current;
+    wheelFrameRef.current = requestAnimationFrame(stepWheelScroll);
+  }, [queueSnapRestore]);
+
+  const startWheelScroll = useCallback(
+    (targetLeft, { easing = 0.16 } = {}) => {
+      const slider = scrollRef.current;
+      if (!slider) return;
+
+      if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+
+      slider.style.scrollSnapType = "none";
+      slider.style.scrollBehavior = "auto";
+
+      scrollEaseRef.current = easing;
+      scrollTargetRef.current = clampScrollLeft(targetLeft);
+
+      if (!wheelFrameRef.current) {
+        wheelFrameRef.current = requestAnimationFrame(stepWheelScroll);
+      }
+    },
+    [clampScrollLeft, stepWheelScroll]
+  );
+
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
+
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
 
   useEffect(() => {
     const slider = scrollRef.current;
@@ -64,8 +138,8 @@ const Demo = () => {
         scrollTrigger: {
           trigger: section,
           start: "top 80%",
-          end: "top 36%",
-          scrub: true,
+          toggleActions: "play none none none",
+          once: true,
         },
       });
 
@@ -107,12 +181,13 @@ const Demo = () => {
         {
           autoAlpha: 1,
           stagger: 0.05,
-          ease: "none",
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: section,
             start: "top 75%",
-            end: "top 30%",
-            scrub: true,
+            toggleActions: "play none none none",
+            once: true,
           },
         }
       );
@@ -123,41 +198,16 @@ const Demo = () => {
         {
           autoAlpha: 1,
           stagger: 0.05,
-          ease: "none",
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: section,
             start: "top 72%",
-            end: "top 28%",
-            scrub: true,
+            toggleActions: "play none none none",
+            once: true,
           },
         }
       );
-
-      gsap.to([heading, subtitle, cards, controls], {
-        autoAlpha: 0.22,
-        y: -34,
-        stagger: 0.03,
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: "bottom 55%",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
-
-      gsap.to(cardText, {
-        autoAlpha: 0.18,
-        y: -22,
-        stagger: 0.01,
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: "bottom 55%",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
     }, section);
 
     return () => context.revert();
@@ -198,23 +248,25 @@ const Demo = () => {
         if (closestIndex <= 0) {
           slider.style.scrollSnapType = "none";
           slider.scrollLeft += totalSetWidth;
+          scrollTargetRef.current += totalSetWidth;
           closestIndex += totalItems;
           requestAnimationFrame(() => {
-            if (slider && !isDragging) slider.style.scrollSnapType = "x mandatory";
+            if (slider && !isDraggingRef.current) slider.style.scrollSnapType = "x mandatory";
           });
         } else if (closestIndex >= totalItems * 3 - 1) {
           slider.style.scrollSnapType = "none";
           slider.scrollLeft -= totalSetWidth;
+          scrollTargetRef.current -= totalSetWidth;
           closestIndex -= totalItems;
           requestAnimationFrame(() => {
-            if (slider && !isDragging) slider.style.scrollSnapType = "x mandatory";
+            if (slider && !isDraggingRef.current) slider.style.scrollSnapType = "x mandatory";
           });
         }
       }
 
       setActiveIndex(closestIndex);
     });
-  }, [isDragging, totalItems]);
+  }, [totalItems]);
 
   const getCardSlot = (index) => {
     const distance = index - activeIndex;
@@ -235,6 +287,7 @@ const Demo = () => {
     const centerCard = () => {
       slider.scrollLeft =
         targetCard.offsetLeft - (slider.clientWidth - targetCard.offsetWidth) / 2;
+      scrollTargetRef.current = slider.scrollLeft;
       activeIndexRef.current = INITIAL_INDEX;
       setActiveIndex(INITIAL_INDEX);
     };
@@ -245,9 +298,10 @@ const Demo = () => {
     return () => {
       window.removeEventListener("resize", centerCard);
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      stopWheelAnimation();
       if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
     };
-  }, []);
+  }, [stopWheelAnimation]);
 
   const handleScroll = () => {
     syncActiveCard();
@@ -263,16 +317,8 @@ const Demo = () => {
     if (delta === 0) return;
 
     event.preventDefault();
-    slider.style.scrollSnapType = "none";
-    slider.style.scrollBehavior = "auto";
-    slider.scrollLeft += delta;
-
-    if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
-    wheelTimeoutRef.current = setTimeout(() => {
-      if (!slider || isDragging) return;
-      slider.style.scrollSnapType = "x mandatory";
-      slider.style.scrollBehavior = "smooth";
-    }, 140);
+    const baseTarget = wheelFrameRef.current ? scrollTargetRef.current : slider.scrollLeft;
+    startWheelScroll(baseTarget + delta * 0.92, { easing: 0.14 });
   };
 
   const handlePointerDown = (event) => {
@@ -283,9 +329,14 @@ const Demo = () => {
     const slider = scrollRef.current;
     if (!slider) return;
 
+    stopWheelAnimation();
+    if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+
+    isDraggingRef.current = true;
     setIsDragging(true);
     slider.style.scrollSnapType = "none";
     slider.style.scrollBehavior = "auto";
+    scrollTargetRef.current = slider.scrollLeft;
 
     dragStateRef.current = {
       pointerId: event.pointerId,
@@ -299,7 +350,7 @@ const Demo = () => {
   };
 
   const handlePointerMove = (event) => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
     if (dragStateRef.current.pointerId !== event.pointerId) return;
 
     event.preventDefault();
@@ -316,13 +367,15 @@ const Demo = () => {
   };
 
   const resetDragState = () => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
 
+    isDraggingRef.current = false;
     setIsDragging(false);
     const slider = scrollRef.current;
     if (slider) {
-      slider.style.scrollSnapType = "x mandatory";
+      scrollTargetRef.current = slider.scrollLeft;
       slider.style.scrollBehavior = "smooth";
+      queueSnapRestore(70);
     }
 
     requestAnimationFrame(() => {
@@ -346,44 +399,33 @@ const Demo = () => {
     dragStateRef.current.pointerId = null;
     resetDragState();
   };
-const scrollToIndex = useCallback((targetIndex) => {
-  const slider = scrollRef.current;
-  if (!slider) return;
+  const scrollToIndex = useCallback(
+    (targetIndex) => {
+      const slider = scrollRef.current;
+      if (!slider) return;
 
-  // Manual Loop Handling for Buttons
-  let normalizedIndex = targetIndex;
-  const firstSetEnd = totalItems;
-  const lastSetStart = totalItems * 2;
+      let normalizedIndex = targetIndex;
+      if (normalizedIndex < 0) normalizedIndex = 0;
+      if (normalizedIndex >= totalItems * 3) normalizedIndex = totalItems * 3 - 1;
 
-  // We allow smooth scrolling within the extended range, 
-  // but if we go outside indices [0, totalItems*3-1], we loop instantly.
-  if (normalizedIndex < 0) normalizedIndex = 0;
-  if (normalizedIndex >= totalItems * 3) normalizedIndex = totalItems * 3 - 1;
+      const targetCard = cardRefs.current[normalizedIndex];
+      if (!targetCard) return;
 
-  const targetCard = cardRefs.current[normalizedIndex];
-  if (!targetCard) return;
+      startWheelScroll(
+        targetCard.offsetLeft - (slider.clientWidth - targetCard.offsetWidth) / 2,
+        { easing: 0.18 }
+      );
+    },
+    [startWheelScroll, totalItems]
+  );
 
-  slider.style.scrollBehavior = "smooth";
-  slider.style.scrollSnapType = "none";
+  const handlePrev = useCallback(() => {
+    scrollToIndex(activeIndexRef.current - 1);
+  }, [scrollToIndex]);
 
-  slider.scrollLeft =
-    targetCard.offsetLeft - (slider.clientWidth - targetCard.offsetWidth) / 2;
-
-  activeIndexRef.current = normalizedIndex;
-  setActiveIndex(normalizedIndex);
-
-  requestAnimationFrame(() => {
-    if (slider) slider.style.scrollSnapType = "x mandatory";
-  });
-}, [totalItems]);
-
-const handlePrev = useCallback(() => {
-  scrollToIndex(activeIndexRef.current - 1);
-}, [scrollToIndex]);
-
-const handleNext = useCallback(() => {
-  scrollToIndex(activeIndexRef.current + 1);
-}, [scrollToIndex]);
+  const handleNext = useCallback(() => {
+    scrollToIndex(activeIndexRef.current + 1);
+  }, [scrollToIndex]);
 
   const handlePointerCancel = () => {
     dragStateRef.current.pointerId = null;

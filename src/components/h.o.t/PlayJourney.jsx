@@ -6,6 +6,9 @@ import './PlayJourney.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const SECTION_SCRUB = 1.45;
+const SECTION_SCRUB_LONG = 1.75;
+
 const features = [
   {
     keyword: "ENTER",
@@ -55,6 +58,8 @@ export default function PlayJourney() {
   const imgRefs = useRef([]);
 
   useEffect(() => {
+    if (!wrapperRef.current) return undefined;
+
     const ctx = gsap.context(() => {
       const label = wrapperRef.current.querySelector(".adv-label");
 
@@ -68,7 +73,8 @@ export default function PlayJourney() {
             trigger: wrapperRef.current,
             start: "top 100%",   
             end: "top 0%",       
-            scrub: 1.5,
+            scrub: 2.1,
+            invalidateOnRefresh: true,
           },
         }
       );
@@ -84,7 +90,8 @@ export default function PlayJourney() {
             trigger: wrapperRef.current,
             start: "top 88%",
             end: "top 58%",
-            scrub: 1,
+            scrub: SECTION_SCRUB,
+            invalidateOnRefresh: true,
           },
         }
       );
@@ -107,7 +114,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "top 74%",
             end: "top 34%",
-            scrub: 1,
+            scrub: SECTION_SCRUB,
+            invalidateOnRefresh: true,
           },
         }).to(keywordWrap, {
           opacity: 1,
@@ -115,13 +123,14 @@ export default function PlayJourney() {
           ease: "none",
         });
 
-        // Keyword fill: gray → red
+       
         gsap.timeline({
           scrollTrigger: {
             trigger: section,
             start: "top 70%",
             end: "top 25%",
-            scrub: 1.2,
+            scrub: SECTION_SCRUB_LONG,
+            invalidateOnRefresh: true,
           },
         }).to(fill, {
           clipPath: "inset(0 0% 0 0)",
@@ -134,7 +143,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "bottom 65%",
             end: "bottom 20%",
-            scrub: 1.2,
+            scrub: SECTION_SCRUB_LONG,
+            invalidateOnRefresh: true,
           },
         }).to(fill, {
           clipPath: "inset(0 100% 0 0)",
@@ -146,7 +156,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "bottom 70%",
             end: "bottom 24%",
-            scrub: 1,
+            scrub: SECTION_SCRUB,
+            invalidateOnRefresh: true,
           },
         }).to(keywordWrap, {
           opacity: 0.2,
@@ -160,7 +171,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "top 60%",
             end: "top 5%",
-            scrub: 1,
+            scrub: SECTION_SCRUB,
+            invalidateOnRefresh: true,
           },
         }).to(textEls, {
           opacity: 1,
@@ -175,7 +187,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "bottom 75%",
             end: "bottom 30%",
-            scrub: 1,
+            scrub: SECTION_SCRUB,
+            invalidateOnRefresh: true,
           },
         }).to(textEls, {
           opacity: 0,
@@ -190,7 +203,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "top 65%",
             end: "top 20%",
-            scrub: 1,
+            scrub: SECTION_SCRUB_LONG,
+            invalidateOnRefresh: true,
           },
         }).fromTo(img, { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, ease: "none" });
 
@@ -200,7 +214,8 @@ export default function PlayJourney() {
             trigger: section,
             start: "bottom 65%",
             end: "bottom 15%",
-            scrub: 1,
+            scrub: SECTION_SCRUB_LONG,
+            invalidateOnRefresh: true,
           },
         }).to(img, { opacity: 0, scale: 0.9, ease: "none" });
       });
@@ -211,7 +226,7 @@ export default function PlayJourney() {
 
   return (
     <div className="adv-wrapper" ref={wrapperRef}>
-      <h3 className="adv-label">How the game unfolds</h3>
+      <h3 className="adv-label">HOW THE GAME UNFOLDS</h3>
 
       <div className="adv-body">
         {/* LEFT — sticky image stack */}

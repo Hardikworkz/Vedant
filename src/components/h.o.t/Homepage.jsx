@@ -13,6 +13,21 @@ gsap.registerPlugin(ScrollTrigger);
 
 const MOBILE_BREAKPOINT = 760;
 const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT}px)`;
+const LENIS_EASING = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
+const LENIS_SETTINGS = {
+    duration: 1.32,
+    easing: LENIS_EASING,
+    smoothWheel: true,
+    syncTouch: true,
+    syncTouchLerp: 0.12,
+    gestureOrientation: 'vertical',
+    wheelMultiplier: 0.9,
+    touchMultiplier: 0.95,
+};
+const HERO_KICKER_LINES = [
+    'Escape Rooms · VR',
+    'Gaming · Axe Throwing · Archery',
+];
 
 const Homepage = () => {
     const keyRef = useRef(null);
@@ -33,12 +48,7 @@ const Homepage = () => {
             return undefined;
         }
 
-        const lenis = new Lenis({
-            duration: 1.15,
-            smoothWheel: true,
-            gestureOrientation: 'vertical',
-            touchMultiplier: 1.1,
-        });
+        const lenis = new Lenis(LENIS_SETTINGS);
 
         const onLenisScroll = () => ScrollTrigger.update();
         const onTick = (time) => lenis.raf(time * 1000);
@@ -115,9 +125,12 @@ const Homepage = () => {
                     start: 'top top',
                     endTrigger: demoStage || showcaseRef.current,
                     end: demoStage ? 'bottom top' : 'bottom top',
-                    scrub: 1.5,
+                    scrub: 1.85,
                     invalidateOnRefresh: true,
-                    onUpdate: (self) => setIsStatic(self.progress > 0.88),
+                    onUpdate: (self) => {
+                        const nextIsStatic = self.progress > 0.88;
+                        setIsStatic((previous) => (previous === nextIsStatic ? previous : nextIsStatic));
+                    },
                 },
             });
 
@@ -156,7 +169,7 @@ const Homepage = () => {
                     trigger: demoStage || homepageRef.current,
                     start: demoStage ? 'top 68%' : 'bottom 45%',
                     end: demoStage ? 'top 28%' : 'bottom top',
-                    scrub: true,
+                    scrub: 1.15,
                     invalidateOnRefresh: true,
                 },
             });
@@ -183,30 +196,37 @@ const Homepage = () => {
         const context = gsap.context(() => {
             const heroTitle = homepageRef.current.querySelector('.hero-title');
             const kicker = homepageRef.current.querySelector('.hero-kicker');
+            const kickerLines = [...homepageRef.current.querySelectorAll('.hero-kicker-line')];
             const titleLines = [...homepageRef.current.querySelectorAll('.hero-title-line')];
             const cta = homepageRef.current.querySelector('.hero-cta');
             const lowerText = [
                 ...homepageRef.current.querySelectorAll('.hero-support, .hero-powered'),
             ];
             const mobileKey = mobileKeyRef.current;
+            const kickerTargets = kickerLines.length ? kickerLines : [kicker].filter(Boolean);
 
             if (!heroTitle) {
                 return;
             }
 
-            gsap.set([kicker, ...titleLines, cta, ...lowerText, mobileKey].filter(Boolean), {
+            gsap.set([kicker, ...kickerTargets, ...titleLines, cta, ...lowerText, mobileKey].filter(Boolean), {
                 autoAlpha: 1,
             });
 
             const introTl = gsap.timeline({
                 defaults: { ease: 'power3.out' },
+                onComplete: () => {
+                    gsap.set([...kickerTargets, ...titleLines, cta, ...lowerText].filter(Boolean), {
+                        clearProps: 'transform,opacity,visibility',
+                    });
+                },
             });
 
             introTl
                 .fromTo(
-                    kicker,
+                    kickerTargets,
                     { y: 18, autoAlpha: 0 },
-                    { y: 0, autoAlpha: 1, duration: 0.56 },
+                    { y: 0, autoAlpha: 1, duration: 0.5, stagger: 0.06 },
                     0
                 )
                 .fromTo(
@@ -237,41 +257,10 @@ const Homepage = () => {
                 );
             }
 
-            if (isMobile) {
-                gsap.set([kicker, ...titleLines, cta, ...lowerText].filter(Boolean), {
-                    autoAlpha: 1,
-                    y: 0,
-                });
-                return;
-            }
-
-            gsap.to([kicker, ...titleLines], {
-                y: -12,
-                autoAlpha: 0.78,
-                ease: 'none',
-                stagger: 0.04,
-                scrollTrigger: {
-                    trigger: homepageRef.current,
-                    start: 'top top',
-                    end: 'bottom top',
-                    scrub: true,
-                },
+            gsap.set([kicker, ...kickerTargets, ...titleLines, cta, ...lowerText].filter(Boolean), {
+                autoAlpha: 1,
+                y: 0,
             });
-
-            if (cta || lowerText.length) {
-                gsap.to([cta, ...lowerText].filter(Boolean), {
-                    y: -16,
-                    autoAlpha: 0.68,
-                    ease: 'none',
-                    stagger: 0.05,
-                    scrollTrigger: {
-                        trigger: homepageRef.current,
-                        start: 'top 5%',
-                        end: 'bottom top',
-                        scrub: true,
-                    },
-                });
-            }
 
             if (!isMobile && keyRef.current) {
                 gsap.fromTo(
@@ -296,6 +285,16 @@ const Homepage = () => {
             <span className="hero-title-line">Lead your</span>
             <span className="hero-title-line hero-title-red">Thrill.</span>
         </h1>
+    );
+
+    const renderHeroKicker = () => (
+        <p className="hero-kicker" aria-label={HERO_KICKER_LINES.join(' ')}>
+            {HERO_KICKER_LINES.map((line) => (
+                <span className="hero-kicker-line" key={line}>
+                    {line}
+                </span>
+            ))}
+        </p>
     );
 
     return (
@@ -334,9 +333,9 @@ const Homepage = () => {
             <main className="content-grid">
                 <div className="hero-copy">
                     <div className="hero-kicker-wrap">
-                        <p className="hero-kicker">
+                        {renderHeroKicker()}{/*
                             Escape Rooms · VR <br/> Gaming · Axe Throwing · Archery
-                        </p>
+                        */}
                     </div>
 
                     <div className="hero-main-wrap">
