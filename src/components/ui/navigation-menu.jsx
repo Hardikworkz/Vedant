@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion as Motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { Navigation, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -17,7 +17,7 @@ const containerVariants = {
   expanded: {
     y: 0,
     opacity: 1,
-    width: "auto",
+    width: "max-content",
     transition: {
       y: { type: "spring", damping: 18, stiffness: 250 },
       opacity: { duration: 0.3 },
@@ -31,7 +31,7 @@ const containerVariants = {
   collapsed: {
     y: 0,
     opacity: 1,
-    width: "3rem",
+    width: "3.5rem",
     transition: {
       type: "spring",
       damping: 20,
@@ -109,7 +109,7 @@ export function AnimatedNavFramer() {
   };
 
   return (
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="fixed top-3 sm:top-6 left-1/2 -translate-x-1/2 z-50">
       <Motion.nav
         initial={{ y: -80, opacity: 0 }}
         animate={isExpanded ? "expanded" : "collapsed"}
@@ -118,20 +118,26 @@ export function AnimatedNavFramer() {
         whileTap={!isExpanded ? { scale: 0.95 } : {}}
         onClick={handleNavClick}
         className={cn(
-          "flex items-center overflow-hidden rounded-full border bg-background/80 shadow-lg backdrop-blur-sm h-12",
+          "w-max max-w-[calc(100vw-14px)] flex items-center overflow-hidden rounded-full border border-white/55 bg-[#d8dadd]/95 text-[#5f718b] shadow-[0_8px_22px_rgba(0,0,0,0.22)] backdrop-blur-sm min-h-[3.65rem] sm:min-h-14 h-auto py-2 px-1.5 sm:px-2",
           !isExpanded && "cursor-pointer justify-center"
         )}
       >
         <Motion.div
           variants={logoVariants}
-          className="flex-shrink-0 flex items-center font-semibold pl-4 pr-2"
+          className="flex-shrink-0 flex items-center font-semibold pl-1.5 pr-2 sm:pr-3"
         >
-          <Navigation className="h-6 w-6" />
+          <img
+            src="/navbar-logo.jpg"
+            alt="Brand logo"
+            className="h-10 w-10 rounded-full object-cover ring-1 ring-black/25"
+            loading="eager"
+            decoding="async"
+          />
         </Motion.div>
 
         <Motion.div
           className={cn(
-            "flex items-center gap-1 sm:gap-4 pr-4",
+            "min-w-0 flex items-center flex-nowrap gap-0.5 sm:gap-7 pr-1.5 sm:pr-4",
             !isExpanded && "pointer-events-none"
           )}
         >
@@ -141,7 +147,12 @@ export function AnimatedNavFramer() {
               href={item.href}
               variants={itemVariants}
               onClick={(e) => e.stopPropagation()}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+              className={cn(
+                "text-[0.9rem] sm:text-sm font-semibold leading-tight flex-shrink-0 text-[#5f718b] hover:text-[#42546d] transition-colors px-1 sm:px-0 py-1 inline-flex items-center justify-center text-center",
+                item.name === "House of Thrill" &&
+                  "whitespace-normal max-w-[5.4rem] sm:max-w-none sm:whitespace-nowrap",
+                item.name !== "House of Thrill" && "whitespace-nowrap"
+              )}
             >
               {item.name}
             </Motion.a>

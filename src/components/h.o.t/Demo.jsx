@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { rooms } from "../../lib/data";
 import "./cards.css";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const INITIAL_INDEX = rooms.length;
 const MIN_DRAG_DISTANCE = 6;
@@ -27,6 +31,137 @@ const Demo = () => {
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
+
+  useEffect(() => {
+    const slider = scrollRef.current;
+    if (!slider) return undefined;
+
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion) {
+      return undefined;
+    }
+
+    const section = slider.closest(".demo-stage");
+    if (!section) return undefined;
+
+    const context = gsap.context(() => {
+      const heading = section.querySelector(".solutions-heading");
+      const subtitle = section.querySelector(".solutions-subtitle");
+      const controls = section.querySelectorAll(".scroller-btn");
+      const cards = section.querySelectorAll(".card-frame");
+      const images = section.querySelectorAll(".card-image-wrapper");
+      const contentBlocks = section.querySelectorAll(".card-content");
+      const cardText = section.querySelectorAll(
+        ".card-tag, .card-title, .card-desc, .stat-item, .card-action-btn"
+      );
+
+      gsap.set([heading, subtitle, ...controls, ...cards, ...cardText], { autoAlpha: 1 });
+
+      const introTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 80%",
+          end: "top 36%",
+          scrub: true,
+        },
+      });
+
+      introTl
+        .fromTo(
+          heading,
+          { y: 60, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.48, ease: "none" },
+          0
+        )
+        .fromTo(
+          subtitle,
+          { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.44, ease: "none" },
+          0.08
+        )
+        .fromTo(
+          controls,
+          { y: 24, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.4, stagger: 0.06, ease: "none" },
+          0.14
+        )
+        .fromTo(
+          cards,
+          { y: 24, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.42, stagger: 0.03, ease: "none" },
+          0.12
+        )
+        .fromTo(
+          cardText,
+          { y: 20, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.34, stagger: 0.01, ease: "none" },
+          0.18
+        );
+
+      gsap.fromTo(
+        images,
+        { autoAlpha: 0.35 },
+        {
+          autoAlpha: 1,
+          stagger: 0.05,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top 75%",
+            end: "top 30%",
+            scrub: true,
+          },
+        }
+      );
+
+      gsap.fromTo(
+        contentBlocks,
+        { autoAlpha: 0.42 },
+        {
+          autoAlpha: 1,
+          stagger: 0.05,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top 72%",
+            end: "top 28%",
+            scrub: true,
+          },
+        }
+      );
+
+      gsap.to([heading, subtitle, cards, controls], {
+        autoAlpha: 0.22,
+        y: -34,
+        stagger: 0.03,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "bottom 55%",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+
+      gsap.to(cardText, {
+        autoAlpha: 0.18,
+        y: -22,
+        stagger: 0.01,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "bottom 55%",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }, section);
+
+    return () => context.revert();
+  }, []);
 
   const syncActiveCard = useCallback(() => {
     if (frameRef.current) {
@@ -270,7 +405,10 @@ const handleNext = useCallback(() => {
   return (
     <section className="demo-stage">
       <div className="solutions-section">
-        <h1 className="solutions-heading">BOOK YOUR EXPERIENCE</h1>
+        <h1 className="solutions-heading">
+          <span>BOOK</span>
+          <span>YOUR EXPERIENCE</span>
+        </h1>
         <p className="solutions-subtitle">
           Swipe through our signature rooms, explore the story, and choose the
           challenge that fits your crew.

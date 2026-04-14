@@ -2,7 +2,7 @@
   background: transparent;
   color: #fff;
   position: relative;
-   
+  margin-top: 10rem;
   z-index: 20;
   overflow-x: clip;
 }
@@ -31,8 +31,13 @@
   text-wrap: balance;
 }
 
+.solutions-heading span {
+  display: block;
+}
+
 .solutions-subtitle {
   margin: 0;
+  margin-inline: auto;
   width: min(100%, 58ch);
   color: rgba(255, 255, 255, 0.78);
   font-size: clamp(0.95rem, 2.4vw, 1.35rem);
@@ -376,8 +381,8 @@
 
 @media (max-width: 1024px) {
   .solutions-section {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
   }
 
   .slider-viewport {

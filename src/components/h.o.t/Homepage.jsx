@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { BsArrowReturnRight } from "react-icons/bs";
 import 'lenis/dist/lenis.css';
 import MetalKeyCanvas from '../MetalKeyCanvas';
 import Demo from './Demo';
@@ -15,6 +16,8 @@ const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT}px)`;
 
 const Homepage = () => {
     const keyRef = useRef(null);
+    const mobileKeyRef = useRef(null);
+    const showcaseRef = useRef(null);
     const homepageRef = useRef(null);
     const [isMobile, setIsMobile] = useState(() => {
         if (typeof window === 'undefined') {
@@ -79,11 +82,12 @@ const Homepage = () => {
     }, [isMobile]);
 
     useEffect(() => {
-        if (isMobile || !keyRef.current || !homepageRef.current) {
+        if (!keyRef.current || !homepageRef.current || !showcaseRef.current) {
             return undefined;
         }
 
         const context = gsap.context(() => {
+            const demoStage = showcaseRef.current.querySelector('.demo-stage');
             const sequenceEl = keyRef.current.querySelector('.animation-sequence');
 
             gsap.set(keyRef.current, {
@@ -109,10 +113,11 @@ const Homepage = () => {
                 scrollTrigger: {
                     trigger: homepageRef.current,
                     start: 'top top',
-                    end: 'bottom top',
+                    endTrigger: demoStage || showcaseRef.current,
+                    end: demoStage ? 'bottom top' : 'bottom top',
                     scrub: 1.5,
                     invalidateOnRefresh: true,
-                    onUpdate: (self) => setIsStatic(self.progress > 0.65),
+                    onUpdate: (self) => setIsStatic(self.progress > 0.88),
                 },
             });
 
@@ -143,77 +148,235 @@ const Homepage = () => {
                 }, 0);
             }
 
-            timeline.to(keyRef.current, {
-                opacity: 0,
-                pointerEvents: 'none',
-                duration: 0.35,
-                ease: 'power2.in',
+            gsap.to(keyRef.current, {
+                autoAlpha: 0,
+                ease: 'none',
                 immediateRender: false,
-            }, 0.65);
-        }, homepageRef);
+                scrollTrigger: {
+                    trigger: demoStage || homepageRef.current,
+                    start: demoStage ? 'top 68%' : 'bottom 45%',
+                    end: demoStage ? 'top 28%' : 'bottom top',
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                },
+            });
+        }, showcaseRef);
 
         ScrollTrigger.refresh();
 
         return () => context.revert();
     }, [isMobile]);
 
+    useEffect(() => {
+        if (!homepageRef.current || !showcaseRef.current) {
+            return undefined;
+        }
+
+        const reduceMotion =
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (reduceMotion) {
+            return undefined;
+        }
+
+        const context = gsap.context(() => {
+            const heroTitle = homepageRef.current.querySelector('.hero-title');
+            const kicker = homepageRef.current.querySelector('.hero-kicker');
+            const titleLines = [...homepageRef.current.querySelectorAll('.hero-title-line')];
+            const cta = homepageRef.current.querySelector('.hero-cta');
+            const lowerText = [
+                ...homepageRef.current.querySelectorAll('.hero-support, .hero-powered'),
+            ];
+            const mobileKey = mobileKeyRef.current;
+
+            if (!heroTitle) {
+                return;
+            }
+
+            gsap.set([kicker, ...titleLines, cta, ...lowerText, mobileKey].filter(Boolean), {
+                autoAlpha: 1,
+            });
+
+            const introTl = gsap.timeline({
+                defaults: { ease: 'power3.out' },
+            });
+
+            introTl
+                .fromTo(
+                    kicker,
+                    { y: 18, autoAlpha: 0 },
+                    { y: 0, autoAlpha: 1, duration: 0.56 },
+                    0
+                )
+                .fromTo(
+                    titleLines,
+                    { y: 36, autoAlpha: 0 },
+                    { y: 0, autoAlpha: 1, duration: 0.82, stagger: 0.08 },
+                    0.08
+                )
+                .fromTo(
+                    cta,
+                    { y: 28, autoAlpha: 0 },
+                    { y: 0, autoAlpha: 1, duration: 0.7 },
+                    0.3
+                )
+                .fromTo(
+                    lowerText,
+                    { y: 24, autoAlpha: 0 },
+                    { y: 0, autoAlpha: 1, duration: 0.62, stagger: 0.08 },
+                    0.38
+                );
+
+            if (mobileKey) {
+                introTl.fromTo(
+                    mobileKey,
+                    { y: 22, scale: 1, autoAlpha: 0 },
+                    { y: 0, scale: 1, autoAlpha: 1, duration: 0.78, ease: 'power2.out' },
+                    0.14
+                );
+            }
+
+            if (isMobile) {
+                gsap.set([kicker, ...titleLines, cta, ...lowerText].filter(Boolean), {
+                    autoAlpha: 1,
+                    y: 0,
+                });
+                return;
+            }
+
+            gsap.to([kicker, ...titleLines], {
+                y: -12,
+                autoAlpha: 0.78,
+                ease: 'none',
+                stagger: 0.04,
+                scrollTrigger: {
+                    trigger: homepageRef.current,
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: true,
+                },
+            });
+
+            if (cta || lowerText.length) {
+                gsap.to([cta, ...lowerText].filter(Boolean), {
+                    y: -16,
+                    autoAlpha: 0.68,
+                    ease: 'none',
+                    stagger: 0.05,
+                    scrollTrigger: {
+                        trigger: homepageRef.current,
+                        start: 'top 5%',
+                        end: 'bottom top',
+                        scrub: true,
+                    },
+                });
+            }
+
+            if (!isMobile && keyRef.current) {
+                gsap.fromTo(
+                    '.brand-image-box',
+                    { autoAlpha: 0, scale: 1 },
+                    {
+                        autoAlpha: 1,
+                        scale: 1,
+                        duration: 0.9,
+                        ease: 'power2.out',
+                    }
+                );
+            }
+        }, showcaseRef);
+
+        return () => context.revert();
+    }, [isMobile]);
+
     const renderHeroTitle = () => (
         <h1 className="hero-title">
-            <span>Escape.</span>
-            <span>Solve.</span>
-            <span>Unlock your</span>
-            <span className="hero-title-red">Thrill.</span>
+            <span className="hero-title-line">Launch Manage</span>
+            <span className="hero-title-line">Lead your</span>
+            <span className="hero-title-line hero-title-red">Thrill.</span>
         </h1>
     );
 
     return (
-        <div className={`hot-showcase${isMobile ? ' is-mobile' : ''}`}>
-            {!isMobile && (
-                <div className="shared-key-layer" aria-hidden="true">
-                    <div className="brand-image-box">
-                        <div className="key-stage" ref={keyRef}>
-                            <div
-                                className="animation-wrapper"
-                                style={{ animationPlayState: isStatic ? 'paused' : 'running' }}
-                            >
-                                <div className="animation-sequence">
-                                    <MetalKeyCanvas isStatic={isStatic} />
-                                </div>
+    <div className={`hot-showcase${isMobile ? ' is-mobile' : ''}`} ref={showcaseRef}>
+        <div className="shared-key-layer" aria-hidden="true">
+            {!isMobile ? (
+                <div className="brand-image-box">
+                    <div className="key-stage" ref={keyRef}>
+                        <div
+                            className="animation-wrapper"
+                            style={{ animationPlayState: isStatic ? 'paused' : 'running' }}
+                        >
+                            <div className="animation-sequence">
+                                <MetalKeyCanvas isStatic={isStatic} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="mobile-key-box" ref={mobileKeyRef}>
+                    <div className="mobile-key-stage" ref={keyRef}>
+                        <div
+                            className="animation-wrapper"
+                            style={{ animationPlayState: isStatic ? 'paused' : 'running' }}
+                        >
+                            <div className="animation-sequence">
+                                <MetalKeyCanvas isStatic={isStatic} />
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+        </div>
 
-            <section className="homepage-container" ref={homepageRef}>
-                <main className="content-grid">
-                    <div className="hero-copy">
+        <section className="homepage-container" ref={homepageRef}>
+            <main className="content-grid">
+                <div className="hero-copy">
+                    <div className="hero-kicker-wrap">
+                        <p className="hero-kicker">
+                            Escape Rooms · VR <br/> Gaming · Axe Throwing · Archery
+                        </p>
+                    </div>
+
+                    <div className="hero-main-wrap">
                         {isMobile ? (
                             <div className="hero-mobile-top">
                                 <div className="hero-title-wrap">
                                     {renderHeroTitle()}
                                 </div>
-                                <div className="mobile-key-box" aria-hidden="true">
-                                    <MetalKeyCanvas isStatic />
-                                </div>
+                                
                             </div>
                         ) : (
                             renderHeroTitle()
                         )}
+                    </div>
 
-                        <a className="hero-cta" href="#book-now" aria-label="Book now">
-                            <span>Book Now</span>
-                            <span className="hero-cta-arrow">-&gt;</span>
+                    <div className="hero-cta-wrap">
+                        <a className="hero-cta" href="#book-now" aria-label="Book your adventure now">
+                            <span>Book Your Adventure</span>
+                            <span className="hero-cta-arrow"><BsArrowReturnRight /></span>
                         </a>
                     </div>
-                </main>
-            </section>
 
-            <div className="first-demo-trigger">
-                <Demo />
-                <PlayJourney />
-            </div>
+                    <div className="hero-lower-wrap">
+                        <p className="hero-support">
+                              The ultimate entertainment destination. Perfect for friends, families, corporate team-building, and birthday parties. Book your adventure today.
+                        </p>
+
+                        <p className="hero-powered">
+                            Powered by <span>Trill Platform</span>
+                        </p>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <div className="first-demo-trigger">
+            <Demo />
+            <PlayJourney />
         </div>
+    </div>
     );
 };
 

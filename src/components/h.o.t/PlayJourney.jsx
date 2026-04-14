@@ -56,38 +56,64 @@ export default function PlayJourney() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const label = wrapperRef.current.querySelector(".adv-label");
 
-      // ── NEW: SECTION CARD REVEAL ──────────────────────────────
-      // The white wrapper scales up from 0.92 → 1 as its top edge
-      // travels from the bottom of the viewport to the top, exactly
-      // matching the "card lifts over dark section" from the video.
-      // border-radius shrinks slightly as the card fully enters view.
-      gsap.fromTo(
+          gsap.fromTo(
         wrapperRef.current,
-        { scale: 0.9,   },
+        { scale: 0.85   },
         {
           scale: 1,
           ease: "none",
           scrollTrigger: {
             trigger: wrapperRef.current,
-            start: "top 90%",   
-            end: "top 10%",       
+            start: "top 100%",   
+            end: "top 0%",       
             scrub: 1.5,
           },
         }
       );
-      // ─────────────────────────────────────────────────────────
+
+      gsap.fromTo(
+        label,
+        { y: 22, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrapperRef.current,
+            start: "top 88%",
+            end: "top 58%",
+            scrub: 1,
+          },
+        }
+      );
 
       features.forEach((_, i) => {
         const section = sectionRefs.current[i];
         const fill = fillRefs.current[i];
         const img = imgRefs.current[i];
+        const keywordWrap = section.querySelector(".adv-keyword-wrap");
         const tagline = section.querySelector(".adv-tagline");
         const paras = section.querySelectorAll(".adv-para");
         const textEls = [tagline, ...paras];
 
         gsap.set(fill, { clipPath: "inset(0 100% 0 0)" });
+        gsap.set(keywordWrap, { opacity: 0, y: 28 });
         gsap.set(textEls, { opacity: 0, y: 28 });
+
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: "top 74%",
+            end: "top 34%",
+            scrub: 1,
+          },
+        }).to(keywordWrap, {
+          opacity: 1,
+          y: 0,
+          ease: "none",
+        });
 
         // Keyword fill: gray → red
         gsap.timeline({
@@ -112,6 +138,19 @@ export default function PlayJourney() {
           },
         }).to(fill, {
           clipPath: "inset(0 100% 0 0)",
+          ease: "none",
+        });
+
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: "bottom 70%",
+            end: "bottom 24%",
+            scrub: 1,
+          },
+        }).to(keywordWrap, {
+          opacity: 0.2,
+          y: -20,
           ease: "none",
         });
 
