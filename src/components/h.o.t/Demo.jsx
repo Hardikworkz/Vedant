@@ -59,7 +59,7 @@ const Demo = () => {
     }, delay);
   }, []);
 
-  const stepWheelScroll = useCallback(() => {
+  const stepWheelScroll = useCallback(function stepWheelScroll() {
     const slider = scrollRef.current;
     if (!slider) {
       wheelFrameRef.current = null;

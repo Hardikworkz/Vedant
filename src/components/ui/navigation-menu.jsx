@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion as Motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import navbarLogo from "../../../public/navbar-logo.jpg";
 
 const navItems = [
   { name: "House of Thrill", href: "#" },
@@ -127,7 +128,7 @@ export function AnimatedNavFramer() {
           className="flex-shrink-0 flex items-center font-semibold pl-1.5 pr-2 sm:pr-3"
         >
           <img
-            src="/navbar-logo.jpg"
+            src={navbarLogo}
             alt="Brand logo"
             className="h-10 w-10 rounded-full object-cover ring-1 ring-black/25"
             loading="eager"

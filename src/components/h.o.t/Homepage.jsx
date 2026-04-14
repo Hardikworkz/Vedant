@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { BsArrowReturnRight } from "react-icons/bs";
 import 'lenis/dist/lenis.css';
-import MetalKeyCanvas from '../MetalKeyCanvas';
 import Demo from './Demo';
 import PlayJourney from './PlayJourney';
 import './Homepage.css';
@@ -28,6 +27,10 @@ const HERO_KICKER_LINES = [
     'Escape Rooms · VR',
     'Gaming · Axe Throwing · Archery',
 ];
+
+const MetalKeyCanvas = lazy(() =>
+    import(/* webpackChunkName: "metal-key-canvas" */ '../MetalKeyCanvas')
+);
 
 const Homepage = () => {
     const keyRef = useRef(null);
@@ -297,6 +300,12 @@ const Homepage = () => {
         </p>
     );
 
+    const renderKeyCanvas = () => (
+        <Suspense fallback={<div className="hero-key-fallback" aria-hidden="true" />}>
+            <MetalKeyCanvas isStatic={isStatic} />
+        </Suspense>
+    );
+
     return (
     <div className={`hot-showcase${isMobile ? ' is-mobile' : ''}`} ref={showcaseRef}>
         <div className="shared-key-layer" aria-hidden="true">
@@ -308,7 +317,7 @@ const Homepage = () => {
                             style={{ animationPlayState: isStatic ? 'paused' : 'running' }}
                         >
                             <div className="animation-sequence">
-                                <MetalKeyCanvas isStatic={isStatic} />
+                                {renderKeyCanvas()}
                             </div>
                         </div>
                     </div>
@@ -321,7 +330,7 @@ const Homepage = () => {
                             style={{ animationPlayState: isStatic ? 'paused' : 'running' }}
                         >
                             <div className="animation-sequence">
-                                <MetalKeyCanvas isStatic={isStatic} />
+                                {renderKeyCanvas()}
                             </div>
                         </div>
                     </div>

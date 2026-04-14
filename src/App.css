@@ -1,0 +1,66 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.nav-loader {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 50;
+  width: min(21rem, calc(100vw - 1.5rem));
+  height: 3.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  background-size: 220% 100%;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%);
+  animation: nav-loader-shimmer 1.6s linear infinite;
+}
+
+.app-loader {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top right, rgba(190, 6, 18, 0.18), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(190, 6, 18, 0.12), transparent 28%),
+    #020000;
+}
+
+.app-loader-panel {
+  width: min(34rem, 100%);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.5rem;
+  background: rgba(10, 10, 10, 0.76);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+}
+
+.app-loader-kicker {
+  margin: 0 0 0.75rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-loader-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 0.95;
+}
+
+@keyframes nav-loader-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -20% 0;
+  }
+}
