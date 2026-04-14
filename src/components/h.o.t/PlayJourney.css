@@ -1,0 +1,153 @@
+.adv-wrapper {
+  background: #fff;
+  padding: 0 5vw 120px;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+
+  transform-origin: bottom center;
+  will-change: transform, border-radius;
+  /* ─────────────────────────────────────────────────── */
+}
+
+/* ── Sticky label ─────────────────────────────────── */
+.adv-label {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 24px 0 32px;
+  background: #fff;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: #000000;
+  text-transform: none;
+}
+
+.adv-wrapper h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ── Two-column body ──────────────────────────────── */
+.adv-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6vw;
+  align-items: start;
+}
+
+/* ── LEFT: sticky image panel ─────────────────────── */
+.adv-left {
+  position: sticky;
+  top: 90px;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adv-img-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.adv-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* ── RIGHT: scrollable feature list ──────────────── */
+.adv-right {
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+  padding-top: 60px;
+}
+
+/* ── Individual feature block ─────────────────────── */
+.adv-feature {
+  min-height: 60vh;
+}
+
+/* ── Keyword: two-layer fill trick ────────────────── */
+.adv-keyword-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 28px;
+  line-height: 1;
+}
+
+.adv-keyword {
+  display: block;
+  font-size: clamp(2.8rem, 5.5vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Base (always visible, gray) */
+.adv-keyword--base {
+  color: #d4d4d4;
+}
+
+/* Fill (red, revealed left→right via clip-path) */
+.adv-keyword--fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #c0392b;
+  clip-path: inset(0 100% 0 0);
+  will-change: clip-path;
+}
+
+/* ── Tagline ──────────────────────────────────────── */
+.adv-tagline {
+  font-size: 0.97rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 20px;
+  will-change: opacity, transform;
+}
+
+/* ── Body paragraphs ──────────────────────────────── */
+.adv-para {
+  font-size: 0.93rem;
+  color: #444;
+  line-height: 1.75;
+  margin: 0 0 16px;
+  will-change: opacity, transform;
+}
+
+.adv-para:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .adv-body {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .adv-left {
+    position: relative;
+    top: auto;
+    height: 280px;
+  }
+
+  .adv-right {
+    gap: 72px;
+    padding-top: 0;
+  }
+
+  .adv-feature {
+    min-height: auto;
+  }
+}
